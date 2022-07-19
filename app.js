@@ -1,5 +1,7 @@
 const canvas = document.getElementById('puissance4')
 const ctx = canvas.getContext('2d')
+const playerScore = document.getElementById('playerScore')
+const reset = document.getElementById('reset')
 
 ctx.strokeStyle = "#000000"
 
@@ -10,64 +12,62 @@ const caseWidth = canvas.width/numberOfXAxisCases
 const caseHeight = canvas.height/numberOfYAxisCases
 
 let playerTurn = 'blue'
-let isPlayerTurnOver = false
-let wrongLine = false
-let isCaseEmpty = true
-let foundEmptyCase = false
 let lineIndex;
 let columnIndex;
+let isGameOver = false
 
-const dummyArray = [
-    [{},{},{},{},{},{},{}],
-    [{},{},{},{},{},{},{}],
-    [{},{},{},{},{},{},{}],
-    [{},{},{},{},{},{},{}],
-    [{},{},{},{},{},{},{}],
-    [{},{},{},{},{},{},{}]
+// Un array pour chaque colonne
+
+const score = {
+    playerBlue: 0,
+    playerRed: 0
+}
+
+let dummyArray = [
+    [{player:""},{player:""},{player:""},{player:""},{player:""},{player:""}],
+    [{player:""},{player:""},{player:""},{player:""},{player:""},{player:""}],
+    [{player:""},{player:""},{player:""},{player:""},{player:""},{player:""}],
+    [{player:""},{player:""},{player:""},{player:""},{player:""},{player:""}],
+    [{player:""},{player:""},{player:""},{player:""},{player:""},{player:""}],
+    [{player:""},{player:""},{player:""},{player:""},{player:""},{player:""}],
+    [{player:""},{player:""},{player:""},{player:""},{player:""},{player:""}]
 ]
 
-const findColumnIndexAndLineIndex = (x, y) => {
-    const columnNumber = (x/100)*2
-    columnIndex = Math.floor(columnNumber)
-    const lineNumber = (y/100)*2
-    lineIndex = Math.floor(lineNumber)
-}
-
-const checkCase = (x, y, game, tokenColor) => {
-    findColumnIndexAndLineIndex(x, y)
-    console.log(columnIndex, lineIndex)
-    if (!game[lineIndex][columnIndex].hasOwnProperty("player")) {
-        game[lineIndex][columnIndex].player = tokenColor
-        foundEmptyCase = true
-        return
+const incrementingScore = (playerTurn) => {
+    if (playerTurn === "blue") {
+        score.playerBlue++
+    } else {
+        score.playerRed++
     }
-    foundEmptyCase = false
 }
 
-const drawCircle = (x, y, tokenColor) => {
+const displayScore = () => {
+    playerScore.innerText = `Player Blue : ${score.playerBlue}
+    Player Red : ${score.playerRed}`
+}
+
+const drawCircle = (x, tokenColor) => {
+    let newY;
+    let numberofCasesFull = 0
+    for (const item of dummyArray[columnIndex]) {
+        if (item.player === "") {
+            numberofCasesFull++
+        }
+    }
+    newY = numberofCasesFull*caseHeight-25
     ctx.fillStyle = tokenColor;
     ctx.beginPath()
-    ctx.arc(x, y, 10, 0, Math.PI * 2, false)
+    ctx.arc(x, newY, 10, 0, Math.PI * 2, false)
     ctx.fill()
 }
 
-const checkAndDraw = (x, y, game, tokenColor) => {
-    checkCase(x, y, game, tokenColor)
-    if (foundEmptyCase === true) {
-        drawCircle(x, y, tokenColor)
-        foundEmptyCase = false
-    } else {
-        return checkAndDraw(x, y-caseHeight, game, tokenColor)
+const gameTurn = (x, dummyArray, tokenColor) => {
+    addToDummyArrayAndDraw(x, dummyArray, tokenColor)
+    winningCondition()
+    if (playerTurn === 'blue') {
+        return playerTurn = 'red'
     }
-}
-
-const gameTurn = (x, y, game, tokenColor) => {
-    checkAndDraw(x, y, game, tokenColor)
-    //checkIfGameMetWinningConditions(x,y)
-    // if (playerTurn === 'blue') {
-    //     return playerTurn = 'red'
-    //  }
-    // return playerTurn = 'blue'
+        return playerTurn = 'blue'
 }
 
 const drawGameGrid = () => {
@@ -83,26 +83,111 @@ const drawGameGrid = () => {
     }
 }
 
-// const checkIfGameMetWinningConditions = (x,y) => {
-//     findColumnIndexAndLineIndex(x, y)
-//     console.log(dummyArray[lineIndex][columnIndex].player, playerTurn, dummyArray[lineIndex][columnIndex+1])
-//     if (dummyArray[lineIndex][columnIndex].player === playerTurn && dummyArray[lineIndex][columnIndex+1].player === playerTurn && dummyArray[lineIndex][columnIndex+=2].player === playerTurn && dummyArray[lineIndex][columnIndex+=3].player === playerTurn) {
-//         console.log("Win")
-//     }
+const findColumnIndex = (x) => {
+    const columnNumber = (x/100)*2
+    columnIndex = Math.floor(columnNumber)
+}
 
-//     if (dummyArray[lineIndex][columnIndex].player === playerTurn && dummyArray[lineIndex][columnIndex+1].player === playerTurn && dummyArray[lineIndex][columnIndex+2].player === playerTurn && dummyArray[lineIndex][columnIndex+3].player === playerTurn) {
-//         console.log("Win")
-//     }
-// }
+const addToDummyArrayAndDraw = (x) => {
+    let test = 0
+    findColumnIndex(x)
+    for (let xNewTurn = 0; xNewTurn < dummyArray.length; xNewTurn++) {
+        if (xNewTurn === columnIndex && dummyArray[xNewTurn].length <= numberOfYAxisCases) {
+            drawCircle(x, playerTurn)
+            for (let yNewTurn = 0; yNewTurn < dummyArray[xNewTurn].length; yNewTurn++) {
+                for (const item of dummyArray[xNewTurn]) {
+                    if (item.player !== "") {
+                        test++
+                    }
+                }
+                dummyArray[xNewTurn][test].player = playerTurn
+                break;
+            }
+        }
+    }
+}
+
+const winningCondition = () => {
+    for (let line = 0; line < numberOfYAxisCases-3; line++) {
+        for (let column = 0; column < numberOfXAxisCases; column++) {
+            if (dummyArray[column][line].player === playerTurn 
+                && dummyArray[column][line+1].player === playerTurn 
+                && dummyArray[column][line+2].player === playerTurn 
+                && dummyArray[column][line+3].player === playerTurn) {
+                console.log(`Winner : ${playerTurn}`)
+                isGameOver = true;
+                incrementingScore(playerTurn)
+                break;
+            }
+        }
+    }
+
+    for (let line = 0; line < numberOfYAxisCases; line++) {
+        for (let column = 0; column < numberOfXAxisCases-3; column++) {
+            if (dummyArray[column][line].player === playerTurn 
+                && dummyArray[column+1][line].player === playerTurn 
+                && dummyArray[column+2][line].player === playerTurn 
+                && dummyArray[column+3][line].player === playerTurn) {
+                console.log(`Winner : ${playerTurn}`)
+                isGameOver = true;
+                incrementingScore(playerTurn)
+                break;
+            }
+        }
+    }
+
+    for (let line = 0; line < numberOfYAxisCases-3; line++) {
+        for (let column = 0; column < numberOfXAxisCases-3; column++) {
+            if (dummyArray[column][line].player === playerTurn 
+                && dummyArray[column+1][line+1].player === playerTurn 
+                && dummyArray[column+2][line+2].player === playerTurn 
+                && dummyArray[column+3][line+3].player === playerTurn) {
+                console.log(`Winner : ${playerTurn}`)
+                isGameOver = true;
+                incrementingScore(playerTurn)
+                break;
+            }
+        }
+    }
+
+    for (let line = 3; line < numberOfYAxisCases; line++) {
+        for (let column = 0; column < numberOfXAxisCases-3; column++) {
+            if (dummyArray[column][line].player === playerTurn 
+                && dummyArray[column+1][line-1].player === playerTurn 
+                && dummyArray[column+2][line-2].player === playerTurn 
+                && dummyArray[column+3][line-3].player === playerTurn) {
+                console.log(`Winner : ${playerTurn}`)
+                isGameOver = true;
+                incrementingScore(playerTurn)
+                break;
+            }
+        }
+    }
+}
 
 drawGameGrid()
 
 canvas.addEventListener("click", e => {
+    if (isGameOver === true) {
+        return;
+    }
     let mouseX = e.clientX;
-    let mouseY = e.clientY;
-    gameTurn(mouseX, mouseY, dummyArray, playerTurn)
-    if (playerTurn === 'blue') {
-        return playerTurn = 'red'
-     }
-    return playerTurn = 'blue'
+    gameTurn(mouseX, 275, dummyArray, playerTurn)
+    displayScore()
 });
+
+reset.addEventListener("click", () => {
+    isGameOver = false
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
+    drawGameGrid()
+    dummyArray = [
+        [{player:""},{player:""},{player:""},{player:""},{player:""},{player:""}],
+        [{player:""},{player:""},{player:""},{player:""},{player:""},{player:""}],
+        [{player:""},{player:""},{player:""},{player:""},{player:""},{player:""}],
+        [{player:""},{player:""},{player:""},{player:""},{player:""},{player:""}],
+        [{player:""},{player:""},{player:""},{player:""},{player:""},{player:""}],
+        [{player:""},{player:""},{player:""},{player:""},{player:""},{player:""}],
+        [{player:""},{player:""},{player:""},{player:""},{player:""},{player:""}]
+    ]
+    playerTurn = "blue"
+})
