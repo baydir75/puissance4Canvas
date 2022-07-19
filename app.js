@@ -83,6 +83,22 @@ const drawGameGrid = () => {
     }
 }
 
+const resetGame = () => {
+    isGameOver = false
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
+    drawGameGrid()
+    dummyArray = [
+        [{player:""},{player:""},{player:""},{player:""},{player:""},{player:""}],
+        [{player:""},{player:""},{player:""},{player:""},{player:""},{player:""}],
+        [{player:""},{player:""},{player:""},{player:""},{player:""},{player:""}],
+        [{player:""},{player:""},{player:""},{player:""},{player:""},{player:""}],
+        [{player:""},{player:""},{player:""},{player:""},{player:""},{player:""}],
+        [{player:""},{player:""},{player:""},{player:""},{player:""},{player:""}],
+        [{player:""},{player:""},{player:""},{player:""},{player:""},{player:""}]
+    ]
+    playerTurn = "blue"
+}
+
 const findColumnIndex = (x) => {
     const columnNumber = (x/100)*2
     columnIndex = Math.floor(columnNumber)
@@ -176,18 +192,4 @@ canvas.addEventListener("click", e => {
     displayScore()
 });
 
-reset.addEventListener("click", () => {
-    isGameOver = false
-    ctx.clearRect(0, 0, canvas.width, canvas.height)
-    drawGameGrid()
-    dummyArray = [
-        [{player:""},{player:""},{player:""},{player:""},{player:""},{player:""}],
-        [{player:""},{player:""},{player:""},{player:""},{player:""},{player:""}],
-        [{player:""},{player:""},{player:""},{player:""},{player:""},{player:""}],
-        [{player:""},{player:""},{player:""},{player:""},{player:""},{player:""}],
-        [{player:""},{player:""},{player:""},{player:""},{player:""},{player:""}],
-        [{player:""},{player:""},{player:""},{player:""},{player:""},{player:""}],
-        [{player:""},{player:""},{player:""},{player:""},{player:""},{player:""}]
-    ]
-    playerTurn = "blue"
-})
+reset.addEventListener("click", resetGame)
